@@ -48,6 +48,7 @@ def pyColocalizer(input_tiff, ch1, ch2, threshold):
     coef = lm.coef_
 
     img_name = input_tiff.split(".tif")[0]
+    img_name = img_name.split("/")[-1]
     return(img_name, rsquared, coef[0][0])
 
 
@@ -65,5 +66,3 @@ for img in tiff_list:
     output_list.append(pyColocalizer(img, 1, 2, 0.1))
 
 output_df = pd.DataFrame(output_list, columns = ["Name", "rsquared", "coef"])
-
-output_df
