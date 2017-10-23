@@ -1,4 +1,4 @@
-# pyColocalizer
+ # pyColocalizer
 # Rewrite of ColocalizeR in python
 
 # imports
@@ -22,7 +22,11 @@ def imgToDataframe(images):
         d["chan{}".format(i + 1)] = images[i].flatten()
     return pd.DataFrame(d)
 
-def colocGrapher(df):
+def axisRemover():
+    plt.xticks(())
+    plt.yticks(())
+
+def colocGrapher(df, img_shape, df_fix, df_X, df_y, predictions, rsquared, img_name):
     plt.figure(figsize=(12,12))
     G = gridspec.GridSpec(4, 4)
 
@@ -74,7 +78,7 @@ def colocGrapher(df):
 
     plt.tight_layout()
 
-    plt.savefig("{}.pdf".format(splitext(basename(input_tiff))[0]), dpi = 300, papertype = "a4")
+    plt.savefig("{}.pdf".format(img_name), dpi = 300, papertype = "a4")
 
 def pyColocalizer(input_tiff, ch1, ch2, threshold):
     with tiff.TiffFile(input_tiff) as tif:
@@ -90,11 +94,15 @@ def pyColocalizer(input_tiff, ch1, ch2, threshold):
 
     df_filter = df.copy()
 
-    df_filter[(df_filter.iloc[:, ch1] < (threshold * df_filter.iloc[:, ch1].max())) &
-              (df_filter.iloc[:, ch2] < (threshold * df_filter.iloc[:, ch2].max()))] = np.nan
+    #df_filter[df_filter == 0] = np.nan
 
-    df_X = df_filter.iloc[:, ch1].dropna().values.reshape(-1, 1)
-    df_y = df_filter.iloc[:, ch2].dropna().values.reshape(-1, 1)
+    df_fix = df_filter - df_filter.min()
+
+    df_fix[(df_fix.iloc[:, ch1] < (threshold * df_fix.iloc[:, ch1].max())) &
+          (df_fix.iloc[:, ch2] < (threshold * df_fix.iloc[:, ch2].max()))] = np.nan
+
+    df_X = df_fix.iloc[:, ch1].dropna().values.reshape(-1, 1)
+    df_y = df_fix.iloc[:, ch2].dropna().values.reshape(-1, 1)
 
     lm = LinearRegression()
     lm.fit(X = df_X, y = df_y)
@@ -104,7 +112,7 @@ def pyColocalizer(input_tiff, ch1, ch2, threshold):
 
     img_name = splitext(basename(input_tiff))[0]
 
-    colocGrapher()
+    colocGrapher(df, img_shape, df_fix, df_X, df_y, predictions, rsquared, img_name)
     return(img_name, rsquared, coef[0][0])
 
 
@@ -117,8 +125,11 @@ tif_pattern = folder + "/*.tif"
 tiff_list = glob.glob(tif_pattern)
 
 output_list = []
-os.chdir("..")
+os.chdir("pyColocalizer")
 for img in tiff_list:
     output_list.append(pyColocalizer(img, 1, 2, 0.1))
+
+pyColocalizer("data/test_gpi2.tif", 1, 2, 0.1)
+
 
 output_df = pd.DataFrame(output_list, columns = ["Name", "rsquared", "coef"])
