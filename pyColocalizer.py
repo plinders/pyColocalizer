@@ -13,13 +13,6 @@ import seaborn as sns
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import r2_score
 
-
-def axisRemover():
-    """Short function to remove axis ticks from plt plots."""
-    plt.xticks(())
-    plt.yticks(())
-
-
 def pyColocalizer(input_tiff, ch1, ch2, threshold):
     """Function to calculate linear regression between two channels of interest."""
     with tiff.TiffFile(input_tiff) as tif:
@@ -60,6 +53,12 @@ def pyColocalizer(input_tiff, ch1, ch2, threshold):
     coef = lm.coef_
 
     img_name = splitext(basename(input_tiff))[0]
+
+    def axisRemover():
+        """Short function to remove axis ticks from plt plots."""
+        plt.xticks(())
+        plt.yticks(())
+
 
     def colocGrapher():
         """Function to graphs data from pyColocalizer."""
@@ -133,3 +132,9 @@ def folderColocalizer(folder, chan1, chan2, threshold):
 
     output_df = pd.DataFrame(output_list, columns=["Name", "rsquared", "coef"])
     output_df.to_csv(splitext(basename(folder))[0] + ".csv", index=False)
+
+
+import os
+os.chdir("C:\\Users\\Peter\\Documents\\Papers\\Colocalization methods\\data")
+
+folderColocalizer("C:\\Users\\Peter\\Documents\\Papers\\Colocalization methods\\data\\Single Cells", 1, 2, 0.1)
