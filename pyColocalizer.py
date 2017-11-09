@@ -34,7 +34,7 @@ def pyColocalizer(input_tiff, ch1, ch2, threshold):
 
     df_filter = df.copy()
 
-    df_filter[df_filter == 0] = np.nan
+    df_filter[(df_filter.iloc[:, ch1] == 0) & (df_filter.iloc[:, ch2] == 0)] = np.nan
 
     df_fix = df_filter - df_filter.min()
 
@@ -114,11 +114,11 @@ def pyColocalizer(input_tiff, ch1, ch2, threshold):
 
         plt.tight_layout()
 
-        plt.savefig("{}.pdf".format(img_name), dpi=300, papertype="a4")
+        plt.savefig("{}_{}.pdf".format(threshold, img_name), dpi=300, papertype="a4")
 
         plt.close()
 
-    colocGrapher()
+    #colocGrapher()
     return(img_name, rsquared, coef[0][0])
 
 
@@ -131,10 +131,42 @@ def folderColocalizer(folder, chan1, chan2, threshold):
         output_list.append(pyColocalizer(img, chan1, chan2, threshold))
 
     output_df = pd.DataFrame(output_list, columns=["Name", "rsquared", "coef"])
-    output_df.to_csv(splitext(basename(folder))[0] + ".csv", index=False)
+
+    foldername = splitext(basename(folder))[0]
+
+    output_df.to_csv("{}_{}.csv".format(n, foldername), index=False)
+
+    #output_df.to_csv(threshold + "_" + splitext(basename(folder))[0] + ".csv", index=False)
 
 
 import os
-os.chdir("C:\\Users\\Peter\\Documents\\Papers\\Colocalization methods\\data")
+os.chdir("C:\\Users\\Peter\\Documents\\Papers\Colocalization methods\\image size test\\")
 
-folderColocalizer("C:\\Users\\Peter\\Documents\\Papers\\Colocalization methods\\data\\Single Cells", 1, 2, 0.1)
+
+
+os.getcwd()
+
+for i in np.arange(0, 1.1, 0.1):
+    folderColocalizer("C:\\Users\\Peter\\Documents\\Papers\\Colocalization methods\\data\\Single Cells", 1, 2, i)
+
+
+folderColocalizer("C:\\Users\\Peter\\Dropbox\\ellen", 1, 2, 0)
+
+np.arange(0, 1.1, 0.1)
+
+test_list = glob.glob("*.tif")
+
+for item in test_list:
+    print item
+
+from timeit import default_timer as timer
+
+for item in test_list:
+    outlist = []
+    for i in range(100):
+        start = timer()
+        pyColocalizer(item, 1, 2, 0)
+        end = timer()
+        outlist.append((item, i, end - start))
+    outdf = pd.DataFrame(outlist, columns=["Name", "n", "time"])
+    outdf.to_csv("{}.csv".format(item), index=False)
