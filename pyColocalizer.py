@@ -12,6 +12,7 @@ import matplotlib.gridspec as gridspec
 import seaborn as sns
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import r2_score
+from scipy.stats import pearsonr
 
 def pyColocalizer(input_tiff, ch1, ch2, threshold):
     """Function to calculate linear regression between two channels of interest."""
@@ -62,6 +63,8 @@ def pyColocalizer(input_tiff, ch1, ch2, threshold):
     coef = lm.coef_
 
     residuals = df_y - predictions
+
+    pearson = pearsonr(df_X, df_y)
 
     img_name = splitext(basename(input_tiff))[0]
 
@@ -131,7 +134,7 @@ def pyColocalizer(input_tiff, ch1, ch2, threshold):
 
 
     colocGrapher()
-    return(img_name, rsquared, coef[0][0])
+    return(img_name, rsquared, coef[0][0], pearson)
 
 
 def folderColocalizer(folder, chan1, chan2, threshold):
@@ -142,7 +145,7 @@ def folderColocalizer(folder, chan1, chan2, threshold):
     for img in tiff_list:
         output_list.append(pyColocalizer(img, chan1, chan2, threshold))
 
-    output_df = pd.DataFrame(output_list, columns=["Name", "rsquared", "coef"])
+    output_df = pd.DataFrame(output_list, columns=["Name", "rsquared", "coef", "pearson"])
 
     foldername = splitext(basename(folder))[0]
 
@@ -152,7 +155,7 @@ def folderColocalizer(folder, chan1, chan2, threshold):
 
 
 import os
-os.chdir("C:\\Users\\Peter\\Dropbox\\Colocalization methods\\data\\Neg ctrl\\tetra\\downsampled")
+os.chdir("C:\\Users\\Peter\\Dropbox\\Colocalization methods\\data\\Reciprocal")
 folderColocalizer("C:\\Users\\Peter\\Dropbox\\Colocalization methods\\data\\Neg ctrl\\tetra\\downsampled", 1, 2, 0)
 
 os.listdir("C:\\Users\\Peter\\Dropbox\\Colocalization methods\\data\\Neg ctrl\\tetra\\002")
@@ -161,6 +164,10 @@ tetra_list = ["C:\\Users\\Peter\\Dropbox\\Colocalization methods\\data\\Neg ctrl
 for i, folder in enumerate(tetra_list):
     os.chdir(folder)
     folderColocalizer(folder, 1, 2, 0)
+
+folderColocalizer("C:\\Users\\Peter\\Dropbox\\Colocalization methods\\data\\Reciprocal", 1, 2, 0.1)
+folderColocalizer("C:\\Users\\Peter\\Dropbox\\Colocalization methods\\data\\Reciprocal", 2, 1, 0.1)
+
 
 
 
