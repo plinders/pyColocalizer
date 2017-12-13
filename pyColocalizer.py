@@ -41,7 +41,16 @@ def pyColocalizer(input_tiff, ch1, ch2, threshold):
     df_fix[(df_fix.iloc[:, ch1] < (threshold * df_fix.iloc[:, ch1].max())) &
            (df_fix.iloc[:, ch2] < (threshold * df_fix.iloc[:, ch2].max()))] = np.nan
 
-    df_mean = df_fix / np.mean(df_fix)
+    # if (df_fix.iloc[:, ch1].max() >= 65535) | (df_fix.iloc[:, ch2].max() >= 65535):
+    #     df_fix[(df_fix.iloc[:, ch1] >= 65535) | (df_fix.iloc[:, ch2] >= 65535) ] = np.nan
+    # elif (df_fix.iloc[:, ch1].max() >= 4095) | (df_fix.iloc[:, ch2].max() >= 4095):
+    #     df_fix[(df_fix.iloc[:, ch1] >= 4095) | (df_fix.iloc[:, ch2] >= 4095) ] = np.nan
+    # elif (df_fix.iloc[:, ch1].max() >= 255) | (df_fix.iloc[:, ch2].max() >= 255):
+    #     df_fix[(df_fix.iloc[:, ch1] >= 255) | (df_fix.iloc[:, ch2] >= 255) ] = np.nan
+
+
+    #normalize by subtracting mean
+    df_mean = df_fix - np.mean(df_fix)
 
     df_X = df_mean.iloc[:, ch1].dropna().values.reshape(-1, 1)
     df_y = df_mean.iloc[:, ch2].dropna().values.reshape(-1, 1)
@@ -51,6 +60,8 @@ def pyColocalizer(input_tiff, ch1, ch2, threshold):
     predictions = lm.predict(df_X)
     rsquared = r2_score(df_y, predictions)
     coef = lm.coef_
+
+    residuals = df_y - predictions
 
     img_name = splitext(basename(input_tiff))[0]
 
@@ -116,9 +127,10 @@ def pyColocalizer(input_tiff, ch1, ch2, threshold):
 
         plt.savefig("{}_{}.pdf".format(threshold, img_name), dpi=300, papertype="a4")
 
-        plt.close()
+    plt.close()
 
-    #colocGrapher()
+
+    colocGrapher()
     return(img_name, rsquared, coef[0][0])
 
 
@@ -134,23 +146,40 @@ def folderColocalizer(folder, chan1, chan2, threshold):
 
     foldername = splitext(basename(folder))[0]
 
-    output_df.to_csv("{}_{}.csv".format(n, foldername), index=False)
+    output_df.to_csv("{}_{}.csv".format(threshold, foldername), index=False)
 
     #output_df.to_csv(threshold + "_" + splitext(basename(folder))[0] + ".csv", index=False)
 
 
 import os
-os.chdir("C:\\Users\\Peter\\Documents\\Papers\Colocalization methods\\image size test\\")
+os.chdir("C:\\Users\\Peter\\Dropbox\\Colocalization methods\\data\\Neg ctrl\\tetra\\downsampled")
+folderColocalizer("C:\\Users\\Peter\\Dropbox\\Colocalization methods\\data\\Neg ctrl\\tetra\\downsampled", 1, 2, 0)
+
+os.listdir("C:\\Users\\Peter\\Dropbox\\Colocalization methods\\data\\Neg ctrl\\tetra\\002")
+
+tetra_list = ["C:\\Users\\Peter\\Dropbox\\Colocalization methods\\data\\Neg ctrl\\tetra\\downsampled\\002", "C:\\Users\\Peter\\Dropbox\\Colocalization methods\\data\\Neg ctrl\\tetra\\downsampled\\003"]
+for i, folder in enumerate(tetra_list):
+    os.chdir(folder)
+    folderColocalizer(folder, 1, 2, 0)
 
 
+
+os.listdir("C:\\Users\\Peter\\Dropbox\\Colocalization methods\\data\\Neg ctrl\\SP8_Confocal_dapi_CD9\\Confocal_dapi_CD9")
+
+for i in os.listdir("C:\\Users\\Peter\\Dropbox\\Colocalization methods\\data\\Neg ctrl\\SP8_Confocal_dapi_CD9\\Confocal_dapi_CD9"):
+    folderColocalizer(i, 1, 3, 0)
+
+folderColocalizer("C:\\Users\\Peter\\Dropbox\\Colocalization methods\\data\\Neg ctrl\\SP8_Confocal_dapi_CD9\\Confocal_dapi_CD9\\160208_experiment 160120.4_STX3_CD9", 1, 3, 0)
 
 os.getcwd()
 
 for i in np.arange(0, 1.1, 0.1):
-    folderColocalizer("C:\\Users\\Peter\\Documents\\Papers\\Colocalization methods\\data\\Single Cells", 1, 2, i)
+    folderColocalizer("C:\\Users\\Peter\\Dropbox\\Colocalization methods\\data\\Pos ctrl", 1, 2, i)
 
 
 folderColocalizer("C:\\Users\\Peter\\Dropbox\\ellen", 1, 2, 0)
+
+pyColocalizer("171128_PL_J.1 TetraSpeck.lif - Tetraspeck_560_660_002-11.tif", 1, 2, 0.1)
 
 np.arange(0, 1.1, 0.1)
 
