@@ -67,30 +67,29 @@ def applyThreshold(final_df, threshold):
     #Make copy of channels of interest, just in case
     thres_df = final_df.loc[:,['contour_chan1', 'contour_chan2']].copy()
 
+    thres_df = thres_df - thres_df.min()
+
     thres_df[(thres_df.loc[:, 'contour_chan1'] == 0) & (thres_df.loc[:, 'contour_chan2'] == 0)] = np.nan
 
     thres_df[(thres_df.loc[:, 'contour_chan1'] < (threshold * thres_df.loc[:, 'contour_chan1'].max())) &
              (thres_df.loc[:, 'contour_chan2'] < (threshold * thres_df.loc[:, 'contour_chan2'].max()))] = np.nan
     #Replace channels of interest in original dataframe by the thresholded ones
-    final_df[['contour_chan1', 'contour_chan2']] = thres_df
+    final_df[['thres_chan1', 'thres_chan2']] = thres_df
 
     return(final_df)
 
 
-def MandersCoef(final_df, img_shape):
+def MandersCoef(final_df):
     """Computes Manders' coefficients.
     """
 
-    A = final_df['orig_chan1'].values.reshape(img_shape)
-    B = final_df['orig_chan2'].values.reshape(img_shape)
+    M1 = np.nansum(final_df[final_df['contour_chan2'] > 0]['contour_chan1'].values) / np.nansum(final_df['contour_chan1'])
+    M2 = np.nansum(final_df[final_df['contour_chan1'] > 0]['contour_chan2'].values) / np.nansum(final_df['contour_chan2'])
 
-    tA = final_df['contour_chan1'].values.reshape(img_shape)
-    tB = final_df['contour_chan2'].values.reshape(img_shape)
+    tM1 = np.nansum(final_df[final_df['thres_chan2'] > 0]['thres_chan1'].values) / np.nansum(final_df['thres_chan1'])
+    tM2 = np.nansum(final_df[final_df['thres_chan1'] > 0]['thres_chan2'].values) / np.nansum(final_df['thres_chan2'])
 
-    MA = (np.nansum(tB * A) / np.nansum(A)) / 100
-    MB = (np.nansum(tA * B) / np.nansum(B)) / 100
-
-    return(MA, MB)
+    return(M1, M2, tM1, tM2)
 
 
 def colocRegression(final_df):
@@ -98,8 +97,8 @@ def colocRegression(final_df):
     Returns predicted values of channel 2, R-squared, coefficient and Pearson's R.
     """
     #Make 1d-arrays for the linear model.
-    df_X = final_df['contour_chan1'].dropna().values.reshape(-1, 1)
-    df_y = final_df['contour_chan2'].dropna().values.reshape(-1, 1)
+    df_X = final_df['thres_chan1'].dropna().values.reshape(-1, 1)
+    df_y = final_df['thres_chan2'].dropna().values.reshape(-1, 1)
 
     lm = LinearRegression()
     lm.fit(X = df_X, y = df_y)
@@ -114,8 +113,8 @@ def colocRegression(final_df):
 def residualReconstitutor(final_df, predictions):
     """Reconstitues an image from residuals.
     """
-    residuals = abs(final_df["contour_chan2"].dropna().values.reshape(-1, 1) - predictions)
-    final_df['residuals'] = pd.DataFrame(residuals, index = final_df["contour_chan1"].dropna().index)
+    residuals = abs(final_df["thres_chan2"].dropna().values.reshape(-1, 1) - predictions)
+    final_df['residuals'] = pd.DataFrame(residuals, index = final_df["thres_chan1"].dropna().index)
     return(final_df)
 
 
@@ -158,30 +157,30 @@ def colocGrapher(final_df, threshold, img_shape, predictions, rsquared, img_name
 
     #chan1 filtered
     ax5 = plt.subplot(G[1, 0])
-    ax5.imshow(final_df["contour_chan1"].values.reshape(img_shape), cmap="gray")
+    ax5.imshow(final_df["thres_chan1"].values.reshape(img_shape), cmap="gray")
     axisRemover()
     ax5.set(title="Channel 1 filtered")
 
     #chan2 filtered
     ax6 = plt.subplot(G[1, 1])
-    ax6.imshow(final_df["contour_chan2"].values.reshape(img_shape), cmap="gray")
+    ax6.imshow(final_df["thres_chan2"].values.reshape(img_shape), cmap="gray")
     axisRemover()
     ax6.set(title="Channel 2 filtered")
 
     #chan1 filtered distribution
     ax7 = plt.subplot(G[1, 2])
-    sns.distplot(final_df["contour_chan1"].dropna(), axlabel = "Channel 1")
+    sns.distplot(final_df["thres_chan1"].dropna(), axlabel = "Channel 1")
     ax7.set(title="Filtered")
 
     #chan2 filtered distribution
     ax8 = plt.subplot(G[1, 3])
-    sns.distplot(final_df["contour_chan2"].dropna(), axlabel = "Channel 2")
+    sns.distplot(final_df["thres_chan2"].dropna(), axlabel = "Channel 2")
     ax8.set(title="Filtered")
 
     #data scatter plot + regression line
     ax9 = plt.subplot(G[2:, :2])
-    plt.scatter(final_df["contour_chan1"].dropna(), final_df["contour_chan2"].dropna())
-    plt.plot(final_df["contour_chan1"].dropna(), predictions, color="red")
+    plt.hexbin(final_df["thres_chan1"].dropna(), final_df["thres_chan2"].dropna(), bins='log', gridsize=25, cmap='Blues')
+    plt.plot(final_df["thres_chan1"].dropna(), predictions, color="red")
     #plt.text(x=1, y = final_df["contour_chan2"].max(), s="$R^2$: {}".format(
     #    round(rsquared, 3)), fontsize=14)
     ax9.set(xlabel="Channel 1", ylabel = "Channel 2", title = "Correlation $R^2$: {}".format(
