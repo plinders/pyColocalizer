@@ -34,21 +34,25 @@ def contourImage(raw_images, ch1, ch2):
     raw_img = raw_images[[chan1, chan2]]
     contour_img = raw_img.copy()
     #Binary masking of both channels, make convex hull for contouring
-    thresh1 = threshold_otsu(contour_img[0])
-    binary1 = contour_img[0] > thresh1
-    chull1 = convex_hull_image(binary1)
-    thresh2 = threshold_otsu(contour_img[1])
-    binary2 = contour_img[1] > thresh2
-    chull2 = convex_hull_image(binary2)
+    try:
+        thresh1 = threshold_otsu(contour_img[0])
+        binary1 = contour_img[0] > thresh1
+        chull1 = convex_hull_image(binary1)
+        thresh2 = threshold_otsu(contour_img[1])
+        binary2 = contour_img[1] > thresh2
+        chull2 = convex_hull_image(binary2)
 
-    if sum(chull1.flatten()) > sum(chull2.flatten()):
-        #Any pixel where no data of the convex hull is, is set to NaN
-        contour_img[0][chull1 == False] = np.nan
-        contour_img[1][chull1 == False] = np.nan
+        if sum(chull1.flatten()) > sum(chull2.flatten()):
+            #Any pixel where no data of the convex hull is, is set to NaN
+            contour_img[0][chull1 == False] = np.nan
+            contour_img[1][chull1 == False] = np.nan
 
-    else:
-        contour_img[0][chull2 == False] = np.nan
-        contour_img[1][chull2 == False] = np.nan
+        else:
+            contour_img[0][chull2 == False] = np.nan
+            contour_img[1][chull2 == False] = np.nan
+
+    except ValueError:
+        pass
 
     #Populate dictionary with data to return the final DataFrame
     d = {}

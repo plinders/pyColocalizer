@@ -1,6 +1,7 @@
 from colocalizer_functions import *
 from os.path import basename, splitext
 import glob
+import sys
 
 def pyColocalizer(img, ch1, ch2, threshold, graph=True):
     img_name = splitext(basename(img))[0]
@@ -31,3 +32,7 @@ def folderColocalizer(folder, chan1, chan2, threshold, graph=True):
     foldername = splitext(basename(folder))[0]
 
     output_df.to_csv("{}_{}.csv".format(threshold, foldername), index=False)
+
+folder_arg = sys.argv[1]
+
+folderColocalizer(folder_arg, 0, 1, 0, graph=True)
