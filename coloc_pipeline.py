@@ -35,4 +35,4 @@ def folderColocalizer(folder, chan1, chan2, threshold, graph=True):
 
 folder_arg = sys.argv[1]
 
-folderColocalizer(folder_arg, 0, 1, 0, graph=True)
+folderColocalizer(folder_arg, 1, 2, 0, graph=True)
