@@ -46,4 +46,7 @@ Network Trash Folder
 Temporary Items
 .apdisk
 
+*.csv
 *.pdf
+pycolocalizer/
+__pycache__/

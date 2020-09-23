@@ -103,13 +103,14 @@ def colocRegression(final_df):
     #Make 1d-arrays for the linear model.
     df_X = final_df['thres_chan1'].dropna().values.reshape(-1, 1)
     df_y = final_df['thres_chan2'].dropna().values.reshape(-1, 1)
+    
 
     lm = LinearRegression()
     lm.fit(X = df_X, y = df_y)
     predictions = lm.predict(df_X)
     rsquared = r2_score(df_y, predictions)
     coef = lm.coef_
-    pearson = pearsonr(df_X, df_y)
+    pearson = pearsonr(df_X.flatten(), df_y.flatten())
 
     return(predictions, rsquared, coef, pearson)
 

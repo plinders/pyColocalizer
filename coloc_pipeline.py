@@ -14,7 +14,7 @@ def pyColocalizer(img, ch1, ch2, threshold, graph=True):
     df = residualReconstitutor(df, predictions)
     if graph:
         colocGrapher(df, threshold, img_shape, predictions, rsquared, img_name)
-    return(img_name, rsquared, coef[0][0], pearson[0][0], tM1, tM2)
+    return(img_name, rsquared, coef[0][0], pearson[0], tM1, tM2)
 
 def folderColocalizer(folder, chan1, chan2, threshold, graph=True):
     """Function to facilitate full folder colocalization analysis."""
