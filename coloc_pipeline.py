@@ -16,7 +16,7 @@ def pyColocalizer(img, ch1, ch2, threshold, graph=True):
         colocGrapher(df, threshold, img_shape, predictions, rsquared, img_name)
     return(img_name, rsquared, coef[0][0], pearson[0], tM1, tM2)
 
-def folderColocalizer(folder, chan1, chan2, threshold, graph=True):
+def folderColocalizer(folder, chan1, chan2, threshold, graph=True, foldername=None):
     """Function to facilitate full folder colocalization analysis."""
     tif_pattern = folder + "/*.tif"
     tiff_list = glob.glob(tif_pattern)
@@ -29,10 +29,12 @@ def folderColocalizer(folder, chan1, chan2, threshold, graph=True):
 
     output_df = pd.DataFrame(output_list, columns = ["Name", "rsquared", "coef", "Pearson", "tM1", "tM2"])
 
-    foldername = splitext(basename(folder))[0]
+    if not foldername:
+        foldername = splitext(basename(folder))[0]
 
     output_df.to_csv("{}_{}.csv".format(threshold, foldername), index=False)
 
-folder_arg = sys.argv[1]
+### USAGE EXAMPLE
+# correlate channels 1 and 2 with 0 thresholding and no graph output
+folderColocalizer("Mouse1_GM130_TGN", 1, 2, 0, graph=False, foldername="Mouse1_GM130_TGN_1_2")
 
-folderColocalizer(folder_arg, 1, 2, 0, graph=True)

@@ -1,7 +1,7 @@
 """colocalizer_functions.py
 These serve as helper functions used in coloc_pipeline.py
 """
-import tifffile as tiff
+from skimage.external import tifffile as tiff
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
